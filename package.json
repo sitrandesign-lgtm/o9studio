@@ -1,0 +1,16 @@
+{
+  "name": "o9studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "oNine Studio responsive Home page",
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "dev": "node scripts/serve.mjs",
+    "build": "node scripts/build.mjs",
+    "check": "node --check app.js && node --check scripts/serve.mjs && node --check scripts/build.mjs && node scripts/check-assets.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
