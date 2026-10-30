@@ -35,7 +35,13 @@ The build copies the static site into `dist/`, suitable for static hosting. Noth
 - Underlined controls sweep their line once on hover, then restore the complete underline.
 - White navigation appears beyond the hero when scrolling upward and hides when scrolling downward.
 - Menu opener/close controls, EN/VI Home copy and Back to top work. Gallery, Read More, contact, menu destinations and other footer controls are visual-only as requested; they open no external links or popups.
-- See All Projects scrolls to the gallery. Only the Home page is included.
+- See All Projects scrolls to the gallery. The Bare Han gallery card opens the Work Detail page at `project.html` (Figma node `12:120`).
+
+## Bare Han project detail
+
+Open http://127.0.0.1:4188/project.html. Includes the project overview, full article, sticky project information on desktop, related projects, contact section and shared footer. The layout reflows for mobile. Menu, EN/VI copy, More Info and Back to top work; related projects return to the Home gallery because their individual detail pages are not included.
+
+The three supplied Bare Han photographs support gallery buttons, arrow keys and touch swipes. The counter reflects the three available photos rather than the ten-image placeholder in Figma. Two new Figma photographs are stored as optimized local JPEGs; all assets work without temporary Figma URLs.
 
 ## Assets
 
@@ -45,6 +51,6 @@ SVG assets retain the supplied logos and icons. Local Acumin font files are incl
 
 ## Validation
 
-JavaScript syntax and asset-reference checks pass. Local browser checks covered desktop and 390 px mobile layout, slideshow/progress controls, menu behavior, hover-only controls, no horizontal overflow and Back to top. This is a Home prototype, without form submission, backend services or other pages.
+JavaScript syntax and asset-reference checks pass. Local browser checks covered desktop and 390 px mobile layout, slideshow/progress controls, menu behavior, hover-only controls, no horizontal overflow and Back to top. This is a static prototype without form submission or backend services. The detail page also includes working email and telephone links.
 
 Figma: https://www.figma.com/design/PDkiHZtJdrnSX4hLAbZVBm/O9-Studio?node-id=38-136

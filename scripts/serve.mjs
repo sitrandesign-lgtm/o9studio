@@ -13,7 +13,7 @@ http.createServer(async (request, response) => {
     if (pathname === '/favicon.ico') { response.writeHead(204).end(); return; }
     // Expose only the static site, never repository metadata or tooling.
     const relative = pathname.replace(/^\/+/, '') || 'index.html';
-    if (!['index.html', 'styles.css', 'app.js'].includes(relative) && !relative.startsWith('assets/')) {
+    if (!['index.html', 'project.html', 'styles.css', 'project.css', 'app.js', 'project.js'].includes(relative) && !relative.startsWith('assets/')) {
       response.writeHead(404).end('Not found'); return;
     }
     const file = path.resolve(root, relative);

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const files = ['index.html', 'styles.css', 'app.js'];
+const files = ['index.html', 'project.html', 'styles.css', 'project.css', 'app.js', 'project.js'];
 const sources = await Promise.all(files.map(name => readFile(path.join(root, name), 'utf8')));
 const refs = new Set();
 for (const text of sources) {
