@@ -90,7 +90,13 @@ export const enquiryChoices = [
 ];
 
 export const bareHan = {
-  photos: ['b5cf1.jpg', 'd5609.jpg'],
+  facts: [['Year', '2021'], ['Category', 'Stay'], ['Size', '270 m²'], ['Scope', 'Architecture & interior design']],
+  photos: [
+    'bare-han-01.jpg', 'bare-han-02.jpg', 'bare-han-03.jpg',
+    'bare-han-04.jpg', 'bare-han-05.jpg', 'bare-han-06.jpg',
+    'bare-han-07.jpg', 'bare-han-08.jpg', 'bare-han-09.jpg',
+    'bare-han-10.jpg',
+  ],
   tagline: 'Accommodation for the free spirited.',
   description: [
     'The Bare Boutique Stays brand honours its mission of offering tranquillity and privacy for its guests. Bare Han follows the brand’s self-service check-in and check-out system, with each studio arranged on a separate floor for privacy.',
@@ -102,5 +108,27 @@ export const bareHan = {
     ['Photography', 'Quang Trần'],
     ['Awards', 'Kohler Bold Design Awards'],
     ['Media', 'Archello, Home Decor Plus,\nNội Thất Magazine'],
+  ],
+};
+
+export const pResidence = {
+  facts: [
+    ['Year', '2019'],
+    ['Category', 'Live — Residential'],
+    ['Size', '75 m²'],
+    ['Scope', 'Interior design'],
+    ['Location', 'Ho Chi Minh City, Vietnam'],
+  ],
+  photos: [
+    'p-residence-01.jpg', 'p-residence-02.jpg', 'p-residence-03.jpg',
+    'p-residence-04.jpg', 'p-residence-05.jpg', 'p-residence-06.jpg',
+    'p-residence-07.jpg', 'p-residence-08.jpg', 'p-residence-09.jpg',
+    'p-residence-10.jpg',
+  ],
+  tagline: 'A home shaped around everyday life.',
+  description: [
+    'P Residence is a 75-square-metre apartment in Ho Chi Minh City, designed around its owners’ daily routines. Positioned on the southeastern corner of the building, it benefits from natural light and views across the city.',
+    'The layout connects the living room, kitchen and dining area while providing privacy for the bedrooms. A generous dining table with built-in seating accommodates gatherings with family and friends. The second bedroom serves as a flexible space for reading, exercise and rest, with a window seat overlooking the city.',
+    'Walnut surfaces, integrated storage and simple furnishings bring continuity to the interior. Each element supports a practical need, creating a home with room for both shared activities and time alone.',
   ],
 };

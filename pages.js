@@ -1,6 +1,6 @@
 import {
   studioIntro, homeIntro, connectCopy, projects, awards, publications,
-  approach, processes, services, enquiryChoices, bareHan,
+  approach, processes, services, enquiryChoices, bareHan, pResidence,
 } from './content.js';
 
 export const siteNav = [['Studio', '/studio'], ['Work', '/work'], ['Services', '/services'], ['Contact', '/contact']];
@@ -220,16 +220,16 @@ function contact() {
 function workDetail(id) {
   const project = projects.find(p => p.id === id);
   if (!project) return missing();
-  const featured = id === 'bare-han';
-  const photos = featured ? bareHan.photos : projects.filter(p => p.id === id).map(p => p.image);
+  const details = { 'bare-han': bareHan, 'p-residence': pResidence }[id];
+  const photos = details?.photos ?? projects.filter(p => p.id === id).map(p => p.image);
+  const facts = details?.facts ?? [['Category', project.type]];
   const related = [projects[3], projects[5], projects[4]].filter(p => p.id !== id);
   return `<article class="project-detail container" data-detail>
     <div class="detail-overview">
       <div class="detail-information">
         <div><span>Project</span><h1>${project.name}</h1></div>
         <dl class="detail-facts">
-          ${featured ? '<div><dt>Year</dt><dd>2021</dd></div>' : ''}<div><dt>Category</dt><dd>${project.type}</dd></div>
-          ${featured ? '<div><dt>Size</dt><dd>270 m²</dd></div><div><dt>Scope</dt><dd>Architecture &amp; interior design</dd></div>' : ''}
+          ${facts.map(([label, value]) => `<div${label === 'Location' ? ' class="detail-location"' : ''}><dt>${label}</dt><dd>${value}</dd></div>`).join('')}
         </dl>
         <div class="detail-count"><span data-photo-count>${String(1).padStart(2, '0')} of ${String(photos.length).padStart(2, '0')}</span>
           <div class="detail-track">${icon('19d4e.svg', 453, 1)}${icon('a70cc.svg', 13, 1)}</div>
@@ -237,8 +237,8 @@ function workDetail(id) {
       </div>
       ${carousel(photos, project.name, 'detail')}
     </div>
-    ${featured ? `<section class="detail-story"><h2>${bareHan.tagline}</h2><div>${paragraphs(bareHan.description)}
-      <dl class="detail-credits">${bareHan.credits.map(([name, value]) => `<div><dt>${name}</dt><dd>${value}</dd></div>`).join('')}</dl></div>
+    ${details ? `<section class="detail-story"><h2>${details.tagline}</h2><div>${paragraphs(details.description)}
+      ${details.credits ? `<dl class="detail-credits">${details.credits.map(([name, value]) => `<div><dt>${name}</dt><dd>${value}</dd></div>`).join('')}</dl>` : ''}</div>
     </section>` : ''}
     <section class="more-projects"><div class="more-heading"><h2 class="display">More projects</h2>${link('View all projects', '/work')}</div>
       <div class="related-projects">${related.map(project => projectCard(project)).join('')}</div>

@@ -5,7 +5,7 @@
 
 :root{
   --ink:#212121;--secondary:#646464;--muted:#929292;--line:#dcd8d0;--paper:#fff;
-  --side:20px;--gap:20px;--canvas:1440px;--header-height:86px;--ease:cubic-bezier(.22,.61,.36,1);
+  --side:20px;--gap:20px;--canvas:1920px;--header-height:86px;--ease:cubic-bezier(.22,.61,.36,1);
 }
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth;scrollbar-gutter:stable}
@@ -119,7 +119,11 @@ dialog:not([open]){display:none}
 .carousel-next{right:30px}
 .carousel-next img{transform:rotate(180deg)}
 .carousel-enlarge{left:50%;transform:translate(-50%,-50%)}
-.carousel-detail>.icon-button{opacity:0;pointer-events:none;transition:opacity 200ms var(--ease)}
+.carousel-detail .carousel-photo{object-fit:contain;object-position:center;transition:none}
+.carousel-detail>.icon-button{top:50%;opacity:0;pointer-events:none;transition:opacity 200ms var(--ease)}
+.carousel-detail>.carousel-prev{left:calc(var(--photo-inset-x,0px) + 30px)}
+.carousel-detail>.carousel-next{right:calc(var(--photo-inset-x,0px) + 30px)}
+.lightbox-stage>.icon-button{top:50%}
 .carousel-detail:is(:hover,:focus-within)>.icon-button{opacity:1;pointer-events:auto}
 
 .home-intro{padding-top:108px;min-height:633px;display:flex;align-items:flex-start;justify-content:space-between;gap:28px}
@@ -285,6 +289,7 @@ dialog:not([open]){display:none}
 .detail-information h1{font-size:20px;line-height:25px}
 .detail-facts{display:grid;grid-template-columns:114px minmax(0,1fr);gap:15px 18px;margin-top:auto;width:100%}
 .detail-facts dd{white-space:nowrap}
+.detail-facts .detail-location{grid-column:1/-1}
 .detail-count{margin-top:56px;width:100%;font-size:12px;line-height:18px;display:grid;gap:19px}
 .detail-track{height:1px;position:relative;overflow:hidden}
 .detail-track img{position:absolute;left:0;top:0}

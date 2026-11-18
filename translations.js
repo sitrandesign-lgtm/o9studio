@@ -1,4 +1,4 @@
-import { homeIntro, studioIntro, connectCopy, services, approach, processes, bareHan } from './content.js';
+import { homeIntro, studioIntro, connectCopy, services, approach, processes, bareHan, pResidence } from './content.js';
 
 const vi = new Map([
   ['Home', 'Trang chủ'], ['Studio', 'Về studio'], ['Work', 'Dự án'], ['Services', 'Dịch vụ'], ['Contact', 'Liên hệ'],
@@ -84,6 +84,13 @@ const vi = new Map([
   [bareHan.tagline, 'Không gian lưu trú cho những tâm hồn tự do.'],
   [bareHan.description[0], 'Bare Han tiếp nối định hướng của Bare Boutique Stays về sự yên tĩnh và riêng tư. Khách có thể tự nhận và trả phòng. Mỗi căn studio được bố trí trên một tầng riêng.'],
   [bareHan.description[1], 'Gỗ, đá và kim loại tạo nên mặt đứng công trình. Mặt tiền mở đưa ánh sáng tự nhiên vào bên trong. Ba dải đứng nhấn mạnh chiều cao của tòa nhà.'],
+  ['Live — Residential', 'Live — Nhà ở'],
+  ['Interior design', 'Thiết kế nội thất'],
+  ['Status', 'Trạng thái'], ['Completed', 'Đã hoàn thành'],
+  [pResidence.tagline, 'Ngôi nhà theo nhịp sống hằng ngày.'],
+  [pResidence.description[0], 'P Residence là căn hộ rộng 75 m² tại Thành phố Hồ Chí Minh, được thiết kế theo thói quen sinh hoạt của gia chủ. Nằm ở góc đông nam của tòa nhà, căn hộ đón ánh sáng tự nhiên và có tầm nhìn hướng về thành phố.'],
+  [pResidence.description[1], 'Bố cục kết nối phòng khách, bếp và khu vực ăn uống, đồng thời giữ sự riêng tư cho các phòng ngủ. Bàn ăn rộng cùng ghế ngồi đóng liền tạo không gian gặp gỡ gia đình và bạn bè. Phòng ngủ thứ hai được sử dụng linh hoạt cho việc đọc sách, tập luyện và nghỉ ngơi, với chỗ ngồi bên cửa sổ nhìn ra thành phố.'],
+  [pResidence.description[2], 'Gỗ óc chó, hệ tủ tích hợp và đồ nội thất đơn giản tạo sự liền mạch cho không gian. Mỗi yếu tố đáp ứng một nhu cầu thực tế, dành chỗ cho sinh hoạt chung và những khoảng thời gian riêng.'],
   ['Open menu', 'Mở menu'], ['Close menu', 'Đóng menu'], ['Close image', 'Đóng ảnh'], ['Language', 'Ngôn ngữ'],
   ['Next image', 'Ảnh tiếp theo'], ['Previous image', 'Ảnh trước'], ['Enlarge image', 'Phóng to ảnh'],
   ['Play slideshow', 'Chạy trình chiếu'], ['Pause slideshow', 'Dừng trình chiếu'],

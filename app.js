@@ -148,12 +148,28 @@ for (const carousel of document.querySelectorAll('[data-carousel]')) {
   const dots = [...carousel.querySelectorAll('[data-slide]')];
   const pause = carousel.querySelector('[data-pause]');
   const count = carousel.closest('[data-detail]')?.querySelector('[data-photo-count]');
+  const isDetail = carousel.classList.contains('carousel-detail');
   let current = 0;
   let paused = reducedMotion.matches;
   let inView = true;
   let progress;
   let transition;
   if (photos.length < 2 && !carousel.querySelector('[data-enlarge]')) continue;
+
+  function positionImageControls() {
+    const photo = photos[current];
+    if (!photo.naturalWidth || !photo.naturalHeight) return;
+    const width = carousel.clientWidth;
+    const height = carousel.clientHeight;
+    const scale = Math.min(width / photo.naturalWidth, height / photo.naturalHeight);
+    carousel.style.setProperty('--photo-inset-x', `${Math.max(0, (width - photo.naturalWidth * scale) / 2)}px`);
+  }
+
+  if (isDetail) {
+    photos.forEach(photo => photo.addEventListener('load', positionImageControls));
+    new ResizeObserver(positionImageControls).observe(carousel);
+    positionImageControls();
+  }
 
   function syncLightbox() {
     lightboxImage.src = photos[current].currentSrc || photos[current].src;
@@ -166,12 +182,13 @@ for (const carousel of document.querySelectorAll('[data-carousel]')) {
     clearTimeout(transition);
     const outgoing = photos[current];
     photos.forEach(photo => photo.classList.remove('is-previous'));
-    outgoing.classList.add('is-previous');
+    if (!isDetail) outgoing.classList.add('is-previous');
     outgoing.classList.remove('is-active');
     outgoing.setAttribute('aria-hidden', 'true');
     current = next;
     photos[current].classList.add('is-active');
     photos[current].removeAttribute('aria-hidden');
+    if (isDetail) positionImageControls();
     if (activeGallery?.carousel === carousel) syncLightbox();
     dots.forEach((dot, i) => dot.setAttribute('aria-current', String(i === current)));
     if (count) {
@@ -180,7 +197,7 @@ for (const carousel of document.querySelectorAll('[data-carousel]')) {
       const detail = count.closest('.detail-count');
       detail?.style.setProperty('--progress', `${photos.length > 1 ? current / (photos.length - 1) * 100 : 0}%`);
     }
-    transition = setTimeout(() => outgoing.classList.remove('is-previous'), 950);
+    if (!isDetail) transition = setTimeout(() => outgoing.classList.remove('is-previous'), 950);
   }
 
   function syncPlayback() {
