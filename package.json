@@ -2,13 +2,13 @@
   "name": "o9studio",
   "version": "1.0.0",
   "private": true,
-  "description": "oNine Studio responsive Home page",
+  "description": "oNine Studio desktop portfolio",
   "type": "module",
   "scripts": {
     "start": "node scripts/serve.mjs",
     "dev": "node scripts/serve.mjs",
     "build": "node scripts/build.mjs",
-    "check": "node --check app.js && node --check project.js && node --check scripts/serve.mjs && node --check scripts/build.mjs && node scripts/check-assets.mjs"
+    "check": "node --check app.js && node --check pages.js && node --check content.js && node --check translations.js && node --check scripts/serve.mjs && node --check scripts/build.mjs && node scripts/check-assets.mjs"
   },
   "engines": {
     "node": ">=18"

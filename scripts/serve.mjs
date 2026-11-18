@@ -2,6 +2,7 @@ import http from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { pages, files } from './site-files.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const port = Number(process.env.PORT || 4188);
@@ -12,8 +13,9 @@ http.createServer(async (request, response) => {
     const pathname = decodeURIComponent(url.pathname);
     if (pathname === '/favicon.ico') { response.writeHead(204).end(); return; }
     // Expose only the static site, never repository metadata or tooling.
-    const relative = pathname.replace(/^\/+/, '') || 'index.html';
-    if (!['index.html', 'project.html', 'styles.css', 'project.css', 'app.js', 'project.js'].includes(relative) && !relative.startsWith('assets/')) {
+    const route = pathname.replace(/\/$/, '') || '/';
+    const relative = pages.includes(route) ? 'index.html' : pathname.replace(/^\/+/, '');
+    if (!files.includes(relative) && !relative.startsWith('assets/')) {
       response.writeHead(404).end('Not found'); return;
     }
     const file = path.resolve(root, relative);
