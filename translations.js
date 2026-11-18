@@ -1,4 +1,4 @@
-import { homeIntro, studioIntro, connectCopy, services, approach, processes, bareHan, pResidence } from './content.js';
+import { homeIntro, studioIntro, connectCopy, services, approach, processes, bareHan, pResidence, projectDetails } from './content.js';
 
 const vi = new Map([
   ['Home', 'Trang chủ'], ['Studio', 'Về studio'], ['Work', 'Dự án'], ['Services', 'Dịch vụ'], ['Contact', 'Liên hệ'],
@@ -91,6 +91,15 @@ const vi = new Map([
   [pResidence.description[0], 'P Residence là căn hộ rộng 75 m² tại Thành phố Hồ Chí Minh, được thiết kế theo thói quen sinh hoạt của gia chủ. Nằm ở góc đông nam của tòa nhà, căn hộ đón ánh sáng tự nhiên và có tầm nhìn hướng về thành phố.'],
   [pResidence.description[1], 'Bố cục kết nối phòng khách, bếp và khu vực ăn uống, đồng thời giữ sự riêng tư cho các phòng ngủ. Bàn ăn rộng cùng ghế ngồi đóng liền tạo không gian gặp gỡ gia đình và bạn bè. Phòng ngủ thứ hai được sử dụng linh hoạt cho việc đọc sách, tập luyện và nghỉ ngơi, với chỗ ngồi bên cửa sổ nhìn ra thành phố.'],
   [pResidence.description[2], 'Gỗ óc chó, hệ tủ tích hợp và đồ nội thất đơn giản tạo sự liền mạch cho không gian. Mỗi yếu tố đáp ứng một nhu cầu thực tế, dành chỗ cho sinh hoạt chung và những khoảng thời gian riêng.'],
+  [projectDetails['the-nang-suites'].tagline, 'Một nơi để nghỉ ngơi và kết nối.'],
+  [projectDetails['the-nang-suites'].description[0], 'The Nắng Suites tìm hiểu cách một nơi lưu trú có thể đáp ứng cả sự độc lập và nhu cầu kết nối. Thiết kế kết hợp những khoảnh khắc riêng tư với trải nghiệm chung trong một không gian gần gũi, chú trọng sự chuyển tiếp giữa từng phòng và khu vực sinh hoạt cộng đồng.'],
+  [projectDetails['the-nang-suites'].description[1], 'Ánh sáng, màu sắc và vật liệu tạo nên nét riêng cho nội thất. Đồ đạc và chi tiết không gian hỗ trợ sinh hoạt hằng ngày, tạo chỗ để nghỉ ngơi, đọc sách hoặc dành thời gian cùng nhau. Sự thoải mái được cân nhắc từ cách tổ chức phòng đến những chi tiết nhỏ mà khách tiếp xúc trong suốt thời gian lưu trú.'],
+  [projectDetails['bare-indochine'].tagline, 'Chi tiết quen thuộc, góc nhìn mới.'],
+  [projectDetails['bare-indochine'].description[0], 'Bare Indochine tìm hiểu cách vật liệu và những hình ảnh quen thuộc có thể hiện diện trong nội thất đương đại. Thiết kế kết hợp màu sắc, bề mặt và đồ nội thất để tạo nên một không gian có sự tiếp nối và bản sắc riêng.'],
+  [projectDetails['bare-indochine'].description[1], 'Bố cục đáp ứng các hoạt động hằng ngày và giữ sự kết nối giữa từng khu vực với tổng thể. Tỷ lệ, ánh sáng và mối quan hệ giữa các đồ vật tạo nhịp điệu cho không gian. Chi tiết được phát triển cùng bố cục chung, với sự thoải mái và nhu cầu sử dụng làm định hướng.'],
+  [projectDetails['chi-bu-resort'].tagline, 'Không gian để sống chậm lại.'],
+  [projectDetails['chi-bu-resort'].description[0], 'Chi-Bu Resort hướng đến một nhịp lưu trú chậm hơn, với những không gian khuyến khích khách dừng lại và dành thời gian cho cảnh quan xung quanh. Thiết kế cân nhắc mối quan hệ giữa khu vực gặp gỡ và nơi nghỉ ngơi, kết nối cả hai thành một trải nghiệm liền mạch.'],
+  [projectDetails['chi-bu-resort'].description[1], 'Bề mặt vật liệu tự nhiên, ánh sáng và cách sắp xếp đồ nội thất tạo nên bầu không khí thư thái. Tầm nhìn mở và sự chuyển tiếp giữa các không gian định hướng bố cục, trong khi chi tiết đáp ứng nhu cầu thực tế của kỳ nghỉ. Thiết kế hướng đến sự thoải mái khi sử dụng và kết nối với bối cảnh.'],
   ['Open menu', 'Mở menu'], ['Close menu', 'Đóng menu'], ['Close image', 'Đóng ảnh'], ['Language', 'Ngôn ngữ'],
   ['Next image', 'Ảnh tiếp theo'], ['Previous image', 'Ảnh trước'], ['Enlarge image', 'Phóng to ảnh'],
   ['Play slideshow', 'Chạy trình chiếu'], ['Pause slideshow', 'Dừng trình chiếu'],

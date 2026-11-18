@@ -1,6 +1,6 @@
 import {
   studioIntro, homeIntro, connectCopy, projects, awards, publications,
-  approach, processes, services, enquiryChoices, bareHan, pResidence,
+  approach, processes, services, enquiryChoices, bareHan, projectDetails,
 } from './content.js';
 
 export const siteNav = [['Studio', '/studio'], ['Work', '/work'], ['Services', '/services'], ['Contact', '/contact']];
@@ -78,10 +78,10 @@ function carousel(images, label, variant = 'dots') {
     </div>` : ''}
   </div>`;
 }
-function projectCard(project, { tile = '', gallery = false } = {}) {
+function projectCard(project, { tile = '' } = {}) {
   const { id, name, type, image, location } = project;
   const href = `/work/${id}`;
-  const photo = gallery ? carousel(bareHan.photos, name) : img(image, name, 'loading="lazy"');
+  const photo = img(image, name, 'loading="lazy"');
   return `<article class="project-card${tile ? ` project-tile ${tile}` : ''}" data-category="${type.toLowerCase()}">
     <div class="project-photo">
       ${photo}
@@ -93,10 +93,9 @@ function projectCard(project, { tile = '', gallery = false } = {}) {
     </div>
   </article>`;
 }
-function projectCards(context) {
+function projectCards() {
   return projects.map((project, index) => projectCard(project, {
     tile: `tile-${index + 1}`,
-    gallery: context === 'work' && project.id === 'bare-han',
   })).join('');
 }
 
@@ -107,7 +106,7 @@ function home() {
   </section>
   <div class="home-intro container"><p>${homeIntro}</p>${link('Read more about us', '/studio')}</div>
   <section class="selected-work container">
-    <h2 class="display">Selected Works</h2><div class="project-grid home-project-grid">${projectCards('home')}</div>
+    <h2 class="display">Selected Works</h2><div class="project-grid home-project-grid">${projectCards()}</div>
     <div class="see-projects">${link('See All Projects', '/work')}</div>
   </section>
   <section class="recognition container">
@@ -152,7 +151,7 @@ function work() {
         </div>
       </div>
     </div>
-    <div class="container"><div class="project-grid work-project-grid">${projectCards('work')}</div></div>
+    <div class="container"><div class="project-grid work-project-grid">${projectCards()}</div></div>
   </section>`;
 }
 function servicePage() {
@@ -220,7 +219,8 @@ function contact() {
 function workDetail(id) {
   const project = projects.find(p => p.id === id);
   if (!project) return missing();
-  const details = { 'bare-han': bareHan, 'p-residence': pResidence }[id];
+  const details = projectDetails[id];
+  const credits = details?.credits ?? bareHan.credits;
   const photos = details?.photos ?? projects.filter(p => p.id === id).map(p => p.image);
   const facts = details?.facts ?? [['Category', project.type]];
   const related = [projects[3], projects[5], projects[4]].filter(p => p.id !== id);
@@ -238,7 +238,7 @@ function workDetail(id) {
       ${carousel(photos, project.name, 'detail')}
     </div>
     ${details ? `<section class="detail-story"><h2>${details.tagline}</h2><div>${paragraphs(details.description)}
-      ${details.credits ? `<dl class="detail-credits">${details.credits.map(([name, value]) => `<div><dt>${name}</dt><dd>${value}</dd></div>`).join('')}</dl>` : ''}</div>
+      <dl class="detail-credits">${credits.map(([name, value]) => `<div><dt>${name}</dt><dd>${value}</dd></div>`).join('')}</dl></div>
     </section>` : ''}
     <section class="more-projects"><div class="more-heading"><h2 class="display">More projects</h2>${link('View all projects', '/work')}</div>
       <div class="related-projects">${related.map(project => projectCard(project)).join('')}</div>

@@ -132,3 +132,30 @@ export const pResidence = {
     'Walnut surfaces, integrated storage and simple furnishings bring continuity to the interior. Each element supports a practical need, creating a home with room for both shared activities and time alone.',
   ],
 };
+
+// Draft project descriptions for the local portfolio preview.
+export const projectDetails = {
+  'bare-han': bareHan,
+  'p-residence': pResidence,
+  'the-nang-suites': {
+    tagline: 'A place to settle in and connect.',
+    description: [
+      'The Nắng Suites explores how a place to stay can offer both independence and connection. The design brings private moments and shared experiences into a welcoming setting, with attention to the transition between individual rooms and communal space.',
+      'Light, colour and materials give the interiors a distinct character. Furniture and spatial details support everyday routines, creating places to pause, read or spend time together. The approach considers comfort through both the arrangement of the rooms and the smaller elements guests encounter throughout their stay.',
+    ],
+  },
+  'bare-indochine': {
+    tagline: 'Familiar details, a new perspective.',
+    description: [
+      'Bare Indochine considers how familiar materials and references can find a place in contemporary interiors. The design brings together colour, texture and furniture to create a setting with a sense of continuity and an individual character.',
+      'The arrangement of the interior supports everyday activities while allowing each area to feel connected to the whole. Attention to proportion, lighting and the relationship between objects gives the space a measured rhythm. Details are developed as part of the overall composition, with comfort and practical use guiding the design.',
+    ],
+  },
+  'chi-bu-resort': {
+    tagline: 'Room to slow down.',
+    description: [
+      'Chi-Bu Resort explores a slower pace of hospitality, with spaces that encourage guests to pause and spend time in their surroundings. The design considers the relationship between places for gathering and areas for rest, allowing both to form part of a continuous experience.',
+      'Natural textures, light and considered furniture arrangements establish a relaxed atmosphere. Open views and transitions between spaces inform the composition, while details support the practical needs of a stay. The intention is to create a setting that feels comfortable to use and connected to its context.',
+    ],
+  },
+};
