@@ -1,272 +1,401 @@
-const $ = (selector, scope = document) => scope.querySelector(selector);
-const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
-const site = $('.site');
-new ResizeObserver(() => site.style.setProperty('--design-scale', site.clientWidth / 1440)).observe(site);
+import { renderPage } from './pages.js';
+import { translate, localize } from './translations.js';
 
-const menu = $('#site-menu');
-const modal = $('#content-dialog');
-const content = $('#dialog-content');
-const menuToggle = $('.menu-toggle');
-let previousFocus;
-let language = 'en';
-let toastTimer;
+const page = renderPage(location.pathname);
+const site = document.querySelector('#site');
+document.title = page.title;
+document.body.classList.add(page.page);
+site.innerHTML = page.html;
 
-function toast(message) {
-  const element = $('#toast');
-  element.textContent = message;
-  element.classList.add('is-visible');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => element.classList.remove('is-visible'), 2800);
-}
-function syncDialogState() {
-  document.body.style.overflow = menu.open || modal.open ? 'hidden' : '';
-  $$('.menu-toggle').forEach(button => button.setAttribute('aria-expanded', String(menu.open)));
-}
-function closeDialog(dialog) { dialog.close(); syncDialogState(); }
-function openContent(markup) {
-  if (!modal.open) previousFocus = menu.open ? menuToggle : document.activeElement;
-  if (menu.open) closeDialog(menu);
-  content.innerHTML = markup;
-  if (!modal.open) modal.showModal();
-  modal.scrollTop = 0;
-  syncDialogState();
-  decorateUnderlines();
-}
-$$('.menu-toggle').forEach(button => button.addEventListener('click', () => { menu.showModal(); syncDialogState(); }));
-$$('dialog').forEach(dialog => {
-  $('[data-close]', dialog).addEventListener('click', () => closeDialog(dialog));
-  dialog.addEventListener('click', event => {
-    if (event.target !== dialog) return;
-    const rect = dialog.getBoundingClientRect();
-    if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) closeDialog(dialog);
-  });
-  dialog.addEventListener('close', () => {
-    syncDialogState();
-    if (dialog === modal) { previousFocus?.focus({ preventScroll: true }); }
-  });
-});
-$$('a[href^="#"]').forEach(link => link.addEventListener('click', () => { if (menu.open) closeDialog(menu); }));
-
-// The Home preview keeps gallery clicks on the page, without a detail overlay.
-$('[data-all-projects]').onclick = () => $('#work').scrollIntoView({ behavior: 'smooth' });
-
-// Information controls remain hover-only in this Home preview.
-$$('[data-info]').forEach(button => button.onclick = () => {});
-async function copy(text) {
-  try {
-    await navigator.clipboard.writeText(text);
-    toast(language === 'vi' ? 'Đã sao chép: ' + text : 'Copied: ' + text);
-  } catch { toast(text); }
-}
-$$('[data-contact]').forEach(button => button.onclick = () => {});
-$$('[data-copy]').forEach(button => button.onclick = () => copy(button.dataset.copy));
-$$('[data-social]').forEach(button => button.onclick = () => toast(`${button.dataset.social} — ${language === 'vi' ? 'bản xem trước local không mở liên kết ngoài.' : 'external navigation is disabled in this local preview.'}`));
-$$('.service-image').forEach(card => card.addEventListener('pointerup', event => {
-  if (event.pointerType !== 'mouse' && !event.target.closest('button')) card.classList.toggle('is-revealed');
-}));
-
-// Figma 117:1109: the five supplied photographs in canvas order.
-const slides = [
-  ['c53ff.jpg', 'Warm walnut kitchen and living space'],
-  ['6888c.jpg', 'Circular timber screen at The Nắng Suites'],
-  ['d5609.jpg', 'Bare Han studio with teal and yellow joinery'],
-  ['4974e.jpg', 'Sunlit living room with timber details'],
-  ['93c23.jpg', 'Bright apartment living room with a grey sofa']
-];
-const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-const slideDuration = 5000;
-const hero = $('.hero');
-const pagination = $('.hero-pagination');
-const firstPhoto = $('.hero-photo');
-const photos = [];
-const bullets = [];
-let currentSlide = 0;
-let progress;
-let heroVisible = true;
-let userPaused = false;
-let ready = false;
-let switching = false;
-
-const pauseButton = document.createElement('button');
-pauseButton.className = 'hero-pause';
-pauseButton.setAttribute('aria-label', 'Pause slideshow');
-pauseButton.setAttribute('aria-pressed', 'false');
-pauseButton.innerHTML = '<span aria-hidden="true">Ⅱ</span>';
-pagination.append(pauseButton);
-slides.forEach(([source, alt], index) => {
-  const frame = document.createElement('div');
-  frame.className = 'hero-slide' + (index === 0 ? ' is-active' : '') + (index === 4 ? ' hero-slide-crop' : '');
-  frame.setAttribute('aria-hidden', String(index !== 0));
-  const photo = index === 0 ? firstPhoto : document.createElement('img');
-  photo.className = 'hero-photo';
-  photo.src = `assets/${source}`;
-  photo.alt = alt;
-  frame.append(photo);
-  hero.insertBefore(frame, $('.hero-scrim'));
-  photos.push(frame);
-  const bullet = document.createElement('button');
-  bullet.className = 'hero-bullet';
-  bullet.setAttribute('aria-label', `Featured image ${index + 1}`);
-  bullet.setAttribute('aria-current', String(index === 0));
-  const fill = document.createElement('span');
-  fill.className = 'bullet-progress';
-  bullet.append(fill);
-  bullet.onclick = () => selectSlide(index);
-  bullets.push(bullet);
-  pagination.append(bullet);
-});
-function playbackAllowed() {
-  return ready && heroVisible && !document.hidden && !menu.open && !userPaused && !reducedMotion.matches;
-}
-function syncPlayback() {
-  if (!progress) return;
-  if (playbackAllowed()) progress.play(); else progress.pause();
-}
-function startProgress() {
-  progress?.cancel();
-  if (reducedMotion.matches || !ready) return;
-  progress = $('.bullet-progress', bullets[currentSlide]).animate(
-    [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }],
-    { duration: slideDuration, easing: 'linear', fill: 'forwards' }
-  );
-  progress.onfinish = () => selectSlide((currentSlide + 1) % slides.length);
-  syncPlayback();
-}
-function selectSlide(index) {
-  if (switching) return;
-  // Every image is decoded before autoplay begins; manual clicks also wait for load.
-  const photo = $('img', photos[index]);
-  if (!photo.complete || !photo.naturalWidth) {
-    switching = true;
-    photo.decode().then(() => { switching = false; selectSlide(index); }).catch(() => { switching = false; });
-    return;
-  }
-  currentSlide = index;
-  photos.forEach((frame, position) => {
-    frame.classList.toggle('is-active', position === index);
-    frame.setAttribute('aria-hidden', String(position !== index));
-  });
-  bullets.forEach((bullet, position) => bullet.setAttribute('aria-current', String(position === index)));
-  startProgress();
-}
-pauseButton.onclick = () => {
-  userPaused = !userPaused;
-  pauseButton.setAttribute('aria-pressed', String(userPaused));
-  pauseButton.setAttribute('aria-label', userPaused ? 'Play slideshow' : 'Pause slideshow');
-  pauseButton.firstElementChild.textContent = userPaused ? '▷' : 'Ⅱ';
-  syncPlayback();
-};
-Promise.all(photos.map(frame => $('img', frame).decode().catch(() => {}))).then(() => {
-  ready = true;
-  startProgress();
-});
-new IntersectionObserver(entries => {
-  heroVisible = entries[0].isIntersecting;
-  syncPlayback();
-}, { threshold: 0 }).observe(hero);
-new MutationObserver(syncPlayback).observe(menu, { attributes: true, attributeFilter: ['open'] });
-document.addEventListener('visibilitychange', syncPlayback);
-reducedMotion.addEventListener('change', () => { progress?.cancel(); startProgress(); });
-
-// A gentle opacity-only entrance, once per image as it enters the viewport.
-if (!reducedMotion.matches && 'IntersectionObserver' in window) {
-  const reveal = new IntersectionObserver(entries => entries.forEach(entry => {
-    if (!entry.isIntersecting) return;
-    entry.target.classList.add('is-visible');
-    reveal.unobserve(entry.target);
-  }), { threshold: 0.08 });
-  $$('.project').forEach((image, index) => {
-    image.classList.add('dissolve-in');
-    image.style.setProperty('--reveal-delay', `${index % 2 * 100}ms`);
-    reveal.observe(image);
-  });
+function preferredLanguage() {
+  try { return localStorage.getItem('o9-language') === 'vi' ? 'vi' : 'en'; }
+  catch { return 'en'; }
 }
 
-const english = Object.fromEntries($$('[data-i18n]').map(element => [element.dataset.i18n, element.textContent]));
-const vietnamese = {
-  getInTouch: 'Kết nối với chúng tôi', heroIntro: 'Lấy cảm hứng từ cuộc sống đương đại, o9 Design Studio tạo nên những thiết kế gắn với bối cảnh và câu chuyện riêng của từng dự án. Chúng tôi kết hợp thẩm mỹ không gian và trải nghiệm sử dụng để mang đến những cảm nhận trọn vẹn.',
-  allProjects: 'Xem tất cả dự án', whatWeDo: 'Chúng tôi làm gì', servicesIntro: 'Chúng tôi thiết kế những nơi để lưu trú và những không gian để gọi là nhà. Từ kiến trúc đến nội thất, bố cục, ánh sáng tự nhiên và chi tiết vật liệu được cân nhắc để tạo nên không gian xoay quanh con người. Mỗi dự án gắn với bối cảnh và nhịp sống riêng.',
-  aboutUs: 'Về chúng tôi', profile: 'Hồ sơ công ty', stayCaption: 'Khách sạn, khu nghỉ dưỡng và căn hộ dịch vụ với bản sắc riêng, mang đến sự thoải mái và cảm giác thân thuộc.', liveCaption: 'Không gian sống dành cho những thói quen thường ngày, cân bằng sự gắn kết, riêng tư và dấu ấn cá nhân.', readMore: 'Xem thêm', stay: 'Lưu trú', live: 'Không gian sống', awards: 'Giải thưởng', connect: 'Kết nối với chúng tôi', opportunities: 'Dự án, hợp tác & cơ hội', connectCopy: 'Mỗi dự án bắt đầu từ một cuộc trò chuyện. Dù bạn đang muốn làm mới không gian, khám phá một ý tưởng hay gia nhập đội ngũ, chúng tôi luôn sẵn lòng lắng nghe. Hãy chia sẻ điều bạn đang ấp ủ để cùng tạo nên những không gian ý nghĩa.', contactUs: 'Liên hệ', reach: 'Liên hệ với chúng tôi', findUs: 'Theo dõi chúng tôi', studio: 'Studio', work: 'Dự án', services: 'Dịch vụ', contact: 'Liên hệ', backTop: 'Về đầu trang'
-};
-$$('[data-language]').forEach(button => button.onclick = () => {
-  language = button.dataset.language;
+function setLanguage(language) {
   document.documentElement.lang = language;
-  $$('[data-i18n]').forEach(element => element.textContent = (language === 'vi' ? vietnamese : english)[element.dataset.i18n] || english[element.dataset.i18n]);
-  $$('[data-language]').forEach(item => item.setAttribute('aria-pressed', String(item.dataset.language === language)));
-  decorateUnderlines();
+  localize(document.body, language);
+  document.querySelectorAll('[data-language]').forEach(button => {
+    button.setAttribute('aria-pressed', String(button.dataset.language === language));
+  });
+  document.title = page.title.split(' — ').map(part => translate(part, language)).join(' — ');
+  document.dispatchEvent(new Event('languagechange'));
+  try { localStorage.setItem('o9-language', language); } catch {}
+}
+
+const t = text => translate(text, document.documentElement.lang);
+document.querySelectorAll('[data-language]').forEach(button => {
+  button.addEventListener('click', () => setLanguage(button.dataset.language));
 });
 
-// Keep the underline attached to the text, including right-aligned Read More labels.
-function decorateUnderlines() {
-  $$('.text-link, .read-more, .back-top, .menu-links a, .menu-links button').forEach(element => {
-    if ($('.underline-label', element)) return;
-    const label = document.createElement('span');
-    label.className = 'underline-label';
-    label.textContent = element.textContent;
-    element.replaceChildren(label);
+const menu = document.querySelector('#site-menu');
+const menuOpeners = [...document.querySelectorAll('.menu-toggle')];
+const profile = document.querySelector('#profile-dialog');
+const lightbox = document.querySelector('#image-dialog');
+const lightboxImage = lightbox.querySelector('.lightbox-image');
+let activeGallery;
+lightbox.querySelectorAll('[data-lightbox-step]').forEach(button => {
+  button.addEventListener('click', () => activeGallery?.step(Number(button.dataset.lightboxStep)));
+});
+lightbox.addEventListener('keydown', event => {
+  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+  event.preventDefault();
+  activeGallery?.step(event.key === 'ArrowLeft' ? -1 : 1);
+});
+lightbox.addEventListener('close', () => { activeGallery = undefined; });
+
+menuOpeners.forEach(button => {
+  button.addEventListener('click', () => {
+    menu.showModal();
+    menuOpeners.forEach(opener => opener.setAttribute('aria-expanded', 'true'));
+    document.dispatchEvent(new Event('menuvisibility'));
+  });
+});
+menu.addEventListener('close', () => {
+  menuOpeners.forEach(opener => opener.setAttribute('aria-expanded', 'false'));
+  document.dispatchEvent(new Event('menuvisibility'));
+});
+document.querySelectorAll('[data-profile]').forEach(button => {
+  button.addEventListener('click', () => profile.showModal());
+});
+document.querySelectorAll('dialog').forEach(dialog => {
+  dialog.querySelector('[data-close]').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', event => {
+    if (event.target === dialog) dialog.close();
+  });
+});
+
+const sticky = document.querySelector('.header-sticky');
+const hero = document.querySelector('.hero');
+let lastScroll = Math.max(0, scrollY);
+let direction = 0;
+let distance = 0;
+let queued = false;
+function updateHeader() {
+  queued = false;
+  const currentY = Math.max(0, scrollY);
+  const delta = currentY - lastScroll;
+  const nextDirection = Math.sign(delta);
+  if (nextDirection && nextDirection !== direction) {
+    direction = nextDirection;
+    distance = 0;
+  }
+  distance += Math.abs(delta);
+  const beyondHeader = hero ? hero.getBoundingClientRect().bottom <= 0 : currentY > sticky.offsetHeight;
+  let visible = sticky.classList.contains('is-visible');
+  if (!beyondHeader || (direction === 1 && distance >= 6)) visible = false;
+  else if (direction === -1 && distance >= 8) visible = true;
+  sticky.classList.toggle('is-visible', visible);
+  sticky.inert = !visible;
+  sticky.setAttribute('aria-hidden', String(!visible));
+  lastScroll = currentY;
+}
+function scheduleHeader() {
+  if (!queued) {
+    queued = true;
+    requestAnimationFrame(updateHeader);
+  }
+}
+window.addEventListener('scroll', scheduleHeader, { passive: true });
+window.addEventListener('resize', scheduleHeader);
+
+function toggleGroup(elements) {
+  for (const element of elements) {
+    element.addEventListener('toggle', () => {
+      if (element.open) elements.forEach(peer => { if (peer !== element) peer.open = false; });
+    });
+  }
+}
+
+document.querySelectorAll('.accordion').forEach(group => toggleGroup(group.querySelectorAll('details')));
+
+const filters = [...document.querySelectorAll('[data-filter]')];
+const workGrid = document.querySelector('.work-project-grid');
+function applyFilter(category, updateUrl = false) {
+  const selected = filters.some(button => button.dataset.filter === category) ? category : 'all';
+  filters.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.filter === selected)));
+  workGrid.classList.toggle('is-filtered', selected !== 'all');
+  workGrid.querySelectorAll('[data-category]').forEach(card => {
+    card.hidden = selected !== 'all' && card.dataset.category !== selected;
+  });
+  if (updateUrl) {
+    const url = new URL(location.href);
+    if (selected === 'all') url.searchParams.delete('category');
+    else url.searchParams.set('category', selected);
+    history.replaceState(null, '', url);
+  }
+}
+if (workGrid) {
+  applyFilter(new URL(location.href).searchParams.get('category'));
+  filters.forEach(button => button.addEventListener('click', () => applyFilter(button.dataset.filter, true)));
+}
+
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+if ('IntersectionObserver' in window && !reducedMotion.matches) {
+  const reveal = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('dissolve-in');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.project-tile').forEach(card => reveal.observe(card));
+}
+
+for (const carousel of document.querySelectorAll('[data-carousel]')) {
+  const photos = [...carousel.querySelectorAll('.carousel-photo')];
+  const dots = [...carousel.querySelectorAll('[data-slide]')];
+  const pause = carousel.querySelector('[data-pause]');
+  const count = carousel.closest('[data-detail]')?.querySelector('[data-photo-count]');
+  let current = 0;
+  let paused = reducedMotion.matches;
+  let inView = true;
+  let progress;
+  let transition;
+  if (photos.length < 2 && !carousel.querySelector('[data-enlarge]')) continue;
+
+  function syncLightbox() {
+    lightboxImage.src = photos[current].currentSrc || photos[current].src;
+    lightboxImage.alt = photos[current].alt;
+  }
+
+  function showPhoto(index) {
+    const next = (index + photos.length) % photos.length;
+    if (next === current) return;
+    clearTimeout(transition);
+    const outgoing = photos[current];
+    photos.forEach(photo => photo.classList.remove('is-previous'));
+    outgoing.classList.add('is-previous');
+    outgoing.classList.remove('is-active');
+    outgoing.setAttribute('aria-hidden', 'true');
+    current = next;
+    photos[current].classList.add('is-active');
+    photos[current].removeAttribute('aria-hidden');
+    if (activeGallery?.carousel === carousel) syncLightbox();
+    dots.forEach((dot, i) => dot.setAttribute('aria-current', String(i === current)));
+    if (count) {
+      const format = n => String(n).padStart(2, '0');
+      count.textContent = `${format(current + 1)} of ${format(photos.length)}`;
+      const detail = count.closest('.detail-count');
+      detail?.style.setProperty('--progress', `${photos.length > 1 ? current / (photos.length - 1) * 100 : 0}%`);
+    }
+    transition = setTimeout(() => outgoing.classList.remove('is-previous'), 950);
+  }
+
+  function syncPlayback() {
+    if (!pause) return;
+    const allowed = inView && !document.hidden && !menu.open && !paused;
+    pause.setAttribute('aria-pressed', String(paused));
+    pause.setAttribute('aria-label', t(paused ? 'Play slideshow' : 'Pause slideshow'));
+    pause.textContent = paused ? '▶' : 'Ⅱ';
+    if (allowed && !progress) {
+      progress = dots[current].firstElementChild.animate(
+        [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }],
+        { duration: 5000, fill: 'forwards' },
+      );
+      progress.onfinish = () => selectSlide(current + 1);
+    }
+    if (allowed) progress?.play();
+    else progress?.pause();
+  }
+
+  function selectSlide(index) {
+    progress?.cancel();
+    progress = undefined;
+    showPhoto(index);
+    syncPlayback();
+  }
+
+  dots.forEach((dot, i) => dot.addEventListener('click', () => selectSlide(i)));
+  carousel.querySelectorAll('[data-step]').forEach(button => {
+    button.addEventListener('click', () => selectSlide(current + Number(button.dataset.step)));
+  });
+  carousel.addEventListener('keydown', event => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    event.preventDefault();
+    selectSlide(current + (event.key === 'ArrowLeft' ? -1 : 1));
+  });
+  carousel.querySelector('[data-enlarge]')?.addEventListener('click', () => {
+    activeGallery = { carousel, step: delta => selectSlide(current + delta) };
+    syncLightbox();
+    lightbox.querySelectorAll('[data-lightbox-step]').forEach(button => { button.hidden = photos.length < 2; });
+    lightbox.showModal();
+  });
+  if (pause) {
+    pause.addEventListener('click', () => {
+      paused = !paused;
+      syncPlayback();
+    });
+    document.addEventListener('visibilitychange', syncPlayback);
+    document.addEventListener('menuvisibility', syncPlayback);
+    document.addEventListener('languagechange', syncPlayback);
+    reducedMotion.addEventListener('change', event => {
+      if (event.matches) paused = true;
+      syncPlayback();
+    });
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(([entry]) => {
+        inView = entry.isIntersecting;
+        syncPlayback();
+      }, { threshold: 0.1 }).observe(carousel);
+    }
+    syncPlayback();
+  }
+}
+
+const tabs = [...document.querySelectorAll('.contact-tabs [role=tab]')];
+function activateTab(index) {
+  tabs.forEach((tab, i) => {
+    tab.setAttribute('aria-selected', String(i === index));
+    tab.tabIndex = i === index ? 0 : -1;
+    document.getElementById(tab.getAttribute('aria-controls')).hidden = i !== index;
+  });
+  document.querySelectorAll('[data-enquiry-select][open]').forEach(field => { field.open = false; });
+}
+if (tabs.length) {
+  activateTab(Number(new URL(location.href).searchParams.get('tab') === 'join'));
+  tabs.forEach((tab, i) => {
+    tab.addEventListener('click', () => activateTab(i));
+    tab.addEventListener('keydown', event => {
+      const destinations = { ArrowLeft: 1 - i, ArrowRight: 1 - i, Home: 0, End: tabs.length - 1 };
+      const next = destinations[event.key];
+      if (next === undefined) return;
+      event.preventDefault();
+      activateTab(next);
+      tabs[next].focus();
+    });
   });
 }
-decorateUnderlines();
 
-// Menu destinations are hover-only placeholders in this Home preview.
-// Capture before existing anchor/contact handlers so clicks do not close or scroll.
-menu.addEventListener('click', event => {
-  if (!event.target.closest('.menu-links a, .menu-links button, [data-contact]')) return;
-  event.preventDefault();
-  event.stopImmediatePropagation();
-}, true);
-
-// Show the white navigation only beyond the hero, in response to upward scrolling.
-const whiteHeader = $('.white-header');
-let lastScrollY = Math.max(0, window.scrollY);
-let scrollDirection = 0;
-let directionDistance = 0;
-let scrollQueued = false;
-function setWhiteHeader(visible) {
-  whiteHeader.classList.toggle('is-visible', visible);
-  whiteHeader.setAttribute('aria-hidden', String(!visible));
-  whiteHeader.inert = !visible;
+function saveSubmission(submission) {
+  return new Promise((resolve, reject) => {
+    const open = indexedDB.open('o9-studio-local', 1);
+    open.onupgradeneeded = () => open.result.createObjectStore('submissions', { autoIncrement: true });
+    open.onerror = () => reject(open.error);
+    open.onsuccess = () => {
+      const database = open.result;
+      const transaction = database.transaction('submissions', 'readwrite');
+      transaction.oncomplete = () => { database.close(); resolve(); };
+      transaction.onabort = () => { database.close(); reject(transaction.error); };
+      transaction.objectStore('submissions').add(submission);
+    };
+  });
 }
-function updateWhiteHeader() {
-  scrollQueued = false;
-  const y = Math.max(0, window.scrollY);
-  const delta = y - lastScrollY;
-  const direction = Math.sign(delta);
-  if (direction && direction !== scrollDirection) directionDistance = 0;
-  if (direction) scrollDirection = direction;
-  directionDistance += Math.abs(delta);
-  if (hero.getBoundingClientRect().bottom > 0) {
-    setWhiteHeader(false);
-  } else if (!menu.open && directionDistance >= 8) {
-    setWhiteHeader(scrollDirection < 0);
+
+for (const form of document.querySelectorAll('[data-contact-form]')) {
+  const selects = [...form.querySelectorAll('[data-enquiry-select]')];
+  toggleGroup(selects);
+  for (const select of selects) {
+    const summary = select.querySelector('summary');
+    const output = select.querySelector('.select-value');
+    const syncValue = () => { output.textContent = t(select.querySelector('input:checked')?.value || ''); };
+    select.addEventListener('change', () => {
+      syncValue();
+      select.open = false;
+      summary.focus({ preventScroll: true });
+    });
+    select.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && select.open) {
+        select.open = false;
+        summary.focus({ preventScroll: true });
+      }
+    });
+    document.addEventListener('languagechange', syncValue);
   }
-  lastScrollY = y;
-}
-window.addEventListener('scroll', () => {
-  if (scrollQueued) return;
-  scrollQueued = true;
-  requestAnimationFrame(updateWhiteHeader);
-}, { passive: true });
-window.addEventListener('resize', updateWhiteHeader);
-whiteHeader.addEventListener('focusin', () => {
-  if (hero.getBoundingClientRect().bottom <= 0) setWhiteHeader(true);
-});
-updateWhiteHeader();
+  document.addEventListener('click', event => {
+    selects.forEach(select => { if (!select.contains(event.target)) select.open = false; });
+  });
 
-function syncViewportWidth() {
-  site.style.setProperty('--viewport-width', `${document.documentElement.clientWidth}px`);
-}
-window.addEventListener('resize', syncViewportWidth);
-syncViewportWidth();
+  const zone = form.querySelector('[data-dropzone]');
+  const picker = zone.querySelector('input');
+  const fileList = form.querySelector('.file-list');
+  const error = form.querySelector('.form-error');
+  const status = form.querySelector('.form-status');
+  const submit = form.querySelector('[type=submit]');
+  let files = [];
+  let errorMessage = '';
+  let statusMessage = '';
 
-// Footer labels are visual-only, except the Back to top control.
-$('.footer').addEventListener('click', event => {
-  if (event.target.closest('.back-top')) {
+  function renderFiles() {
+    fileList.replaceChildren();
+    files.forEach((file, index) => {
+      const row = document.createElement('li');
+      const name = document.createElement('span');
+      name.textContent = file.name;
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.textContent = t('Remove');
+      remove.setAttribute('aria-label', `${t('Remove')} ${file.name}`);
+      remove.addEventListener('click', () => {
+        files = files.filter((_, i) => i !== index);
+        errorMessage = '';
+        renderFiles();
+      });
+      row.append(name, remove);
+      fileList.append(row);
+    });
+    error.textContent = t(errorMessage);
+    error.hidden = !errorMessage;
+    status.textContent = t(statusMessage);
+  }
+
+  function addFiles(incoming) {
+    const combined = [...files];
+    for (const file of incoming) {
+      if (!combined.some(item => item.name === file.name && item.size === file.size && item.lastModified === file.lastModified)) {
+        combined.push(file);
+      }
+    }
+    if (combined.length > 5 || combined.reduce((size, file) => size + file.size, 0) > 25_000_000) {
+      errorMessage = 'Attach up to 5 files, 25 MB in total.';
+    } else {
+      files = combined;
+      errorMessage = '';
+    }
+    renderFiles();
+  }
+
+  picker.addEventListener('change', () => {
+    addFiles(picker.files);
+    picker.value = '';
+  });
+  zone.addEventListener('dragover', event => {
     event.preventDefault();
-    window.scrollTo({ top: 0, behavior: reducedMotion.matches ? 'instant' : 'smooth' });
-    return;
-  }
-  if (!event.target.closest('button, a')) return;
-  event.preventDefault();
-  event.stopImmediatePropagation();
-}, true);
+    zone.classList.add('is-dragging');
+  });
+  zone.addEventListener('dragleave', event => {
+    if (!zone.contains(event.relatedTarget)) zone.classList.remove('is-dragging');
+  });
+  zone.addEventListener('drop', event => {
+    event.preventDefault();
+    zone.classList.remove('is-dragging');
+    addFiles(event.dataTransfer.files);
+  });
+  document.addEventListener('languagechange', renderFiles);
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (submit.disabled || errorMessage) return;
+    submit.disabled = true;
+    statusMessage = '';
+    renderFiles();
+    try {
+      const fields = Object.fromEntries(new FormData(form));
+      await saveSubmission({ kind: form.dataset.contactForm, fields, files, createdAt: new Date().toISOString() });
+      form.reset();
+      files = [];
+      selects.forEach(select => { select.querySelector('.select-value').textContent = ''; });
+      statusMessage = 'Saved on this device. No email was sent.';
+    } catch {
+      statusMessage = 'Could not save on this device. Please try again.';
+    } finally {
+      submit.disabled = false;
+      renderFiles();
+    }
+  });
+}
+setLanguage(preferredLanguage());
+
+if (location.hash) {
+  requestAnimationFrame(() => document.getElementById(location.hash.slice(1))?.scrollIntoView({ behavior: 'instant' }));
+}
