@@ -118,7 +118,7 @@ function home() {
   <section class="home-services container">
     <h2 class="display">What we do</h2>
     <div class="home-services-intro"><p>We design places to stay and spaces to call home. Working across architecture and interiors, we bring together thoughtful layouts, natural light and material detail to shape spaces around people.</p>
-      ${link('Our Services', '/services')}<button type="button" class="text-link" data-profile>Our Company Profile</button>
+      <div class="home-services-actions">${link('Our Services', '/services')}<button type="button" class="text-link" data-profile>Our Company Profile</button></div>
     </div>
     <div class="two-columns">
       ${services.map(s => `<article class="service-preview">
@@ -132,7 +132,7 @@ function home() {
 }
 function studio() {
   return `<section class="hero studio-hero" aria-label="Studio at work">${img('1fa56.jpg', 'Drawing an interior plan by hand', 'fetchpriority="high"')}<div class="hero-scrim"></div></section>
-    <section class="studio-about container"><h1 class="display">About us</h1><div>${paragraphs(studioIntro)}</div></section>
+    <section class="studio-about container two-columns"><h1 class="display">About us</h1><div>${paragraphs(studioIntro)}</div></section>
     ${accordion('Our Approach', 'Taking inspiration from contemporary life, o9 Design studio creates designs that respond to the context and narrative of each project.', approach, 'studio-approach')}
     <section class="founder container two-columns">
       ${img('e6067.jpg', 'Long Tran, founder of o9 Studio', 'loading="lazy"')}
